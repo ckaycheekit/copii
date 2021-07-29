@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 from database import Database
 
 
@@ -15,16 +16,40 @@ class Landing(tk.Frame):
         super().__init__(master)
         self.copii = copii
         self.master = master
+        self.username_enter = tk.StringVar()
         self.passcode_enter = tk.StringVar()
+        self.passcode_reenter = tk.StringVar()
         self.login_view()
 
     def login(self):
         pcode_frm_db = db.get_passcode(self.username)
         if self.passcode_enter.get() == pcode_frm_db:
             self.copii.navigation('insert')
-        self.master.unbind("<Return>")
+            self.master.unbind("<Return>")
+        else:
+            self.passcode_enter.set("")
+            messagebox.showerror("Copii", "Wrong password!")
+
+    def signup(self):
+        # Validate both username and passcode has been filled in
+        if (self.username_enter.get() == '') or (self.passcode_enter.get() == ''):
+            messagebox.showerror("Copii", "Please fill in username & passcode!")
+        else:
+            tk.Label(self.master, text='Re-enter passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_reenter, show='*').pack()
+            if self.passcode_enter.get() == self.passcode_reenter.get():
+                db.insert_data('credentials', username=self.username_enter.get(), passcode=self.passcode_enter.get())
+                self.copii.navigation('insert')
+                self.username_enter.set("")
+                self.passcode_enter.set("")
+                self.passcode_reenter.set("")
+                self.master.unbind('<Return>')
+
 
     def login_view(self):
+        # temp drop table everytime for testing purpose
+        # if db.check_table_exists('credentials'):
+        #     db.drop_table('credentials')
         if db.check_table_exists('credentials'):
             # Exising user - show welcome message and passcode page
             self.username = db.get_username()
@@ -34,6 +59,19 @@ class Landing(tk.Frame):
             tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').pack()
             tk.Button(self.master, text='Submit', command=self.login).pack()
             self.master.bind("<Return>", (lambda event: self.login()))
+        else:
+            # Create table and user
+            db.create_table("credentials")
+            welcome_msg = "Hello! Welcome to Copii!"
+            tk.Label(self.master, text=welcome_msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+            tk.Label(self.master, text="Create your user account", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+            tk.Label(self.master, text="Username: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR
+            , textvariable=self.username_enter).pack()
+            tk.Label(self.master, text="Passcode: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').pack()
+            tk.Button(self.master, text='Submit', command=self.signup).pack()
+            self.master.bind("<Return>", (lambda event: self.signup()))
 
 
 class InsertRecord(tk.Frame):

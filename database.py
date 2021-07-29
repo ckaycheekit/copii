@@ -4,7 +4,7 @@ import sqlite3
 class Database:
     def __init__(self):
         self.con = self.get_connection()
-        self.login()
+        # self.login()
 
     def check_table_exists(self, table):
         query = "SELECT name FROM sqlite_master WHERE type='table' AND name='{}'".format(table)
@@ -13,10 +13,10 @@ class Database:
         else:
             return True
 
-    def login(self):
-        table = 'credentials'
-        if not self.check_table_exists(table):
-            self.create_table(table)
+    # def login(self):
+    #     table = 'credentials'
+    #     if not self.check_table_exists(table):
+    #         self.create_table(table)
 
     # def create_account(self, username, passcode):
     #     self.insert_data('credentials', username=username, passcode=passcode)
@@ -33,6 +33,10 @@ class Database:
             query = "CREATE TABLE secrets (tag TEXT, secret TEXT)"
         elif table == 'credentials':
             query = "CREATE TABLE credentials (username TEXT, passcode TEXT)"
+        self.con.execute(query)
+
+    def drop_table(self, table):
+        query = "DROP TABLE {}".format(table)
         self.con.execute(query)
 
     def get_all_tags(self, table):
