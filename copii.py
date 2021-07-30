@@ -69,8 +69,7 @@ class Login(tk.Frame):
             tk.Label(self.master, text=welcome_msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
             tk.Label(self.master, text="Create your user account", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
             tk.Label(self.master, text="Username: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR
-            , textvariable=self.username_enter).pack()
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.username_enter).pack()
             tk.Label(self.master, text="Passcode: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
             tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').pack()
             tk.Button(self.master, text='Submit', command=self.signup).pack()
@@ -89,10 +88,10 @@ class Landing(tk.Frame):
         self.master.clipboard_append(secret)
 
     def delete_tag(self, tag):
-        pass
-
-    def edit_tag(self, tag):
-        pass
+        delete_confirmation = messagebox.askokcancel("Delete", "Are you sure to delete {} ?".format(tag))
+        if delete_confirmation:
+            db.delete_data(tag)
+            self.copii.navigation('landing')
 
     def landing_view(self):
         tk.Label(self.master, text="Landing page", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
@@ -104,11 +103,32 @@ class Landing(tk.Frame):
             sec = tags_secrets_list[i][1]
             copy_secret_to_clipboard = partial(self.copy_secret_to_clipboard, sec)
             delete_tag = partial(self.delete_tag, tag)
-            edit_tag = partial(self.edit_tag, tag)
+            navigate_to_edit_tag = partial(self.copii.navigation, 'edit_tag', tag)
             tk.Button(self.master, text=tag, command=copy_secret_to_clipboard).pack()
-            tk.Button(self.master, text="Edit", command=delete_tag).pack()
-            tk.Button(self.master, text="Delete", command=edit_tag).pack()
+            tk.Button(self.master, text="Edit", command=navigate_to_edit_tag).pack()
+            tk.Button(self.master, text="Delete", command=delete_tag).pack()
 
+
+class EditTagName(tk.Frame):
+    def __init__(self, copii, master, tag_to_edit):
+        super().__init__(master)
+        self.copii = copii
+        self.master = master
+        self.tag_to_edit = tag_to_edit
+        self.new_tag_name = tk.StringVar()
+        self.edit_view()
+
+    def edit_tag(self):
+        db.update_data('secrets', new_tag=self.new_tag_name.get(), tag=self.tag_to_edit)
+        self.copii.navigation('landing')
+
+    def edit_view(self):
+        navigate_to_landing = partial(self.copii.navigation, 'landing')
+        tk.Label(self.master, text=self.tag_to_edit, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+        tk.Label(self.master, text="Enter new tag name: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_tag_name).pack()
+        tk.Button(self.master, text='Submit', command=self.edit_tag).pack()
+        tk.Button(self.master, text='Cancel', command=navigate_to_landing).pack()
 
 class InsertRecord(tk.Frame):
     def __init__(self, copii, master):
@@ -142,7 +162,10 @@ class Copii(tk.Frame):
     def call_insert(self):
         insert = InsertRecord(self, self.master)
 
-    def navigation(self, to_page):
+    def call_edit_tag(self, tag_to_edit):
+        et = EditTagName(self, self.master, tag_to_edit)
+
+    def navigation(self, to_page, tag_to_edit=None):
         for widget in self.master.winfo_children():
             widget.destroy()
         if to_page == 'login':
@@ -151,6 +174,8 @@ class Copii(tk.Frame):
             self.call_landing()
         elif to_page == 'insert':
             self.call_insert()
+        elif to_page == 'edit_tag':
+            self.call_edit_tag(tag_to_edit)
 
 
 if __name__ == '__main__':

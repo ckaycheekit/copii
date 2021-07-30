@@ -1,4 +1,6 @@
 import sqlite3
+from sqlite3.dbapi2 import paramstyle
+from tkinter.constants import NONE
 
 
 class Database:
@@ -12,14 +14,6 @@ class Database:
             return False
         else:
             return True
-
-    # def login(self):
-    #     table = 'credentials'
-    #     if not self.check_table_exists(table):
-    #         self.create_table(table)
-
-    # def create_account(self, username, passcode):
-    #     self.insert_data('credentials', username=username, passcode=passcode)
 
     def get_connection(self):
         conn = sqlite3.connect('data.db')
@@ -79,3 +73,8 @@ class Database:
         self.con.execute(query)
         self.con.commit()
 
+    def update_data(self, table, new_tag=None, tag=None, username=None, new_username=None, new_passcode=None):
+        if table == 'secrets':
+            query = "UPDATE secrets SET tag = '{}' WHERE tag = '{}'".format(new_tag, tag)
+        self.con.execute(query)
+        self.con.commit()
