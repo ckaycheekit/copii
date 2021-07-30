@@ -45,15 +45,14 @@ class Database:
             self.create_table()
         get_query = "SELECT * FROM secrets"
         # return self.con.execute(get_query)
-        res = self.con.execute(get_query)
-        for row in res:
-            print(row[0])
+        res = self.con.execute(get_query).fetchall()
+        return res
 
-    def get_secret(self, tag):
-        query = "SELECT secret from secrets WHERE tag = '{}'".format(tag)
-        res = self.con.execute(query)
-        for val in res:
-            print(val[0])
+    # def get_secret(self, tag):
+    #     query = "SELECT secret from secrets WHERE tag = '{}'".format(tag)
+    #     res = self.con.execute(query)
+    #     for val in res:
+    #         print(val[0])
 
     def get_username(self):
         query = "SELECT username from credentials"

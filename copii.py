@@ -1,17 +1,20 @@
 import tkinter as tk
 from tkinter import messagebox
+# from tkmacosx import Button
 from database import Database
+from functools import partial
 
 
 # Global variables
 PRI_BG_COLOR = 'black'
-SEC_BG_COLOR = 'white'
-PRI_FT_COLOR = 'white'
+SEC_BG_COLOR = '#ececec'
+PRI_FT_COLOR = '#ececec'
 SEC_FT_COLOR = 'black'
 
 db = Database()
 
-class Landing(tk.Frame):
+
+class Login(tk.Frame):
     def __init__(self, copii, master):
         super().__init__(master)
         self.copii = copii
@@ -24,7 +27,7 @@ class Landing(tk.Frame):
     def login(self):
         pcode_frm_db = db.get_passcode(self.username)
         if self.passcode_enter.get() == pcode_frm_db:
-            self.copii.navigation('insert')
+            self.copii.navigation('landing')
             self.master.unbind("<Return>")
         else:
             self.passcode_enter.set("")
@@ -39,7 +42,7 @@ class Landing(tk.Frame):
             tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_reenter, show='*').pack()
             if self.passcode_enter.get() == self.passcode_reenter.get():
                 db.insert_data('credentials', username=self.username_enter.get(), passcode=self.passcode_enter.get())
-                self.copii.navigation('insert')
+                self.copii.navigation('landing')
                 self.username_enter.set("")
                 self.passcode_enter.set("")
                 self.passcode_reenter.set("")
@@ -74,6 +77,39 @@ class Landing(tk.Frame):
             self.master.bind("<Return>", (lambda event: self.signup()))
 
 
+class Landing(tk.Frame):
+    def __init__(self, copii, master):
+        super().__init__(master)
+        self.copii = copii
+        self.master = master
+        self.landing_view()
+
+    def copy_secret_to_clipboard(self, secret):
+        self.master.clipboard_clear()
+        self.master.clipboard_append(secret)
+
+    def delete_tag(self, tag):
+        pass
+
+    def edit_tag(self, tag):
+        pass
+
+    def landing_view(self):
+        tk.Label(self.master, text="Landing page", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+        navigate_to_insert = partial(self.copii.navigation, 'insert')
+        tk.Button(self.master, text='Add record', command=navigate_to_insert).pack()
+        tags_secrets_list = db.get_all_tags('secrets')
+        for i in range(len(tags_secrets_list)):
+            tag = tags_secrets_list[i][0]
+            sec = tags_secrets_list[i][1]
+            copy_secret_to_clipboard = partial(self.copy_secret_to_clipboard, sec)
+            delete_tag = partial(self.delete_tag, tag)
+            edit_tag = partial(self.edit_tag, tag)
+            tk.Button(self.master, text=tag, command=copy_secret_to_clipboard).pack()
+            tk.Button(self.master, text="Edit", command=delete_tag).pack()
+            tk.Button(self.master, text="Delete", command=edit_tag).pack()
+
+
 class InsertRecord(tk.Frame):
     def __init__(self, copii, master):
         super().__init__(master)
@@ -95,7 +131,10 @@ class Copii(tk.Frame):
         self.master.geometry("600x700")
         # Set background color of copii
         self.master.configure(background=PRI_BG_COLOR)
-        self.navigation('landing')
+        self.navigation('login')
+
+    def call_login(self):
+        login = Login(self, self.master)
 
     def call_landing(self):
         landing = Landing(self, self.master)
@@ -106,7 +145,9 @@ class Copii(tk.Frame):
     def navigation(self, to_page):
         for widget in self.master.winfo_children():
             widget.destroy()
-        if to_page == 'landing':
+        if to_page == 'login':
+            self.call_login()
+        elif to_page == 'landing':
             self.call_landing()
         elif to_page == 'insert':
             self.call_insert()
