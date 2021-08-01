@@ -1,4 +1,10 @@
+altgraph==0.17
 antiorm==1.2.1
+colour==0.1.5
 db==0.1.1
 db-sqlite3==0.0.1
+macholib==1.14
+pyinstaller==4.4
+pyinstaller-hooks-contrib==2021.2
 tk==0.1.0
+tkmacosx==1.0.3
