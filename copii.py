@@ -6,6 +6,10 @@ from functools import partial
 
 
 # Global variables
+WINDOW_WIDTH = 600
+WINDOW_HEIGHT = 700
+SPACING = 30
+LANDING_SPACING = 45
 PRI_BG_COLOR = 'black'
 SEC_BG_COLOR = '#ececec'
 PRI_FT_COLOR = '#ececec'
@@ -59,24 +63,24 @@ class Login(tk.Frame):
             # Exising user - show welcome message and passcode page
             self.username = db.get_username()
             welcome_msg = "Hello {}! Welcome back to Copii!".format(self.username)
-            tk.Label(self.master, text=welcome_msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Label(self.master, text='Passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').pack()
-            tk.Button(self.master, text='Submit', command=self.login).pack()
+            tk.Label(self.master, text=welcome_msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/3, y=100)
+            tk.Label(self.master, text='Passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING)
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').place(x=WINDOW_WIDTH/3 + SPACING, y=100+SPACING)
+            tk.Button(self.master, text='Submit', command=self.login).place(x=WINDOW_WIDTH/2,y=100+SPACING*2)
             self.master.bind("<Return>", (lambda event: self.login()))
         else:
             # Create table and user
             db.create_table("credentials")
             welcome_msg = "Hello! Welcome to Copii!"
-            tk.Label(self.master, text=welcome_msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Label(self.master, text="Create your user account", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Label(self.master, text="Username: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.username_enter).pack()
-            tk.Label(self.master, text="Passcode: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').pack()
-            tk.Label(self.master, text='Re-enter passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_reenter, show='*').pack()
-            tk.Button(self.master, text='Submit', command=self.signup).pack()
+            tk.Label(self.master, text=welcome_msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/3, y=100)
+            tk.Label(self.master, text="Create your user account", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/3, y=100+SPACING)
+            tk.Label(self.master, text="Username: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING*2)
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.username_enter).place(x=WINDOW_WIDTH/2.5, y=100+SPACING*2)
+            tk.Label(self.master, text="Passcode: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING*3)
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').place(x=WINDOW_WIDTH/2.5, y=100+SPACING*3)
+            tk.Label(self.master, text='Re-enter passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/6, y=100+SPACING*4)
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_reenter, show='*').place(x=WINDOW_WIDTH/2.5, y=100+SPACING*4)
+            tk.Button(self.master, text='Submit', command=self.signup).place(x=WINDOW_WIDTH/2, y=100+SPACING*5)
             self.master.bind("<Return>", (lambda event: self.signup()))
 
 
@@ -103,7 +107,7 @@ class Landing(tk.Frame):
 
     def landing_view(self):
         navigate_to_insert = partial(self.copii.navigation, 'insert')
-        tk.Button(self.master, text='Add record', command=navigate_to_insert).pack()
+        tk.Button(self.master, text='Add record', command=navigate_to_insert).place(x=WINDOW_WIDTH/8, y=50)
         tags_secrets_list = db.get_all_tags('secrets')
         for i in range(len(tags_secrets_list)):
             tag = tags_secrets_list[i][0]
@@ -111,9 +115,9 @@ class Landing(tk.Frame):
             copy_secret_to_clipboard = partial(self.copy_secret_to_clipboard, tag, sec)
             delete_tag = partial(self.delete_tag, tag)
             navigate_to_edit_tag = partial(self.copii.navigation, 'edit_tag', tag)
-            tk.Button(self.master, text=tag, command=copy_secret_to_clipboard).pack()
-            tk.Button(self.master, text="Edit", command=navigate_to_edit_tag).pack()
-            tk.Button(self.master, text="Delete", command=delete_tag).pack()
+            tk.Button(self.master, text=tag, command=copy_secret_to_clipboard, width=30, height=2).place(x=WINDOW_WIDTH/6, y=100+LANDING_SPACING*i)
+            tk.Button(self.master, text="Edit", command=navigate_to_edit_tag).place(x=WINDOW_WIDTH/1.4, y=100+LANDING_SPACING*i)
+            tk.Button(self.master, text="Delete", command=delete_tag).place(x=WINDOW_WIDTH/1.28, y=100+LANDING_SPACING*i)
 
 
 class EditTagName(tk.Frame):
@@ -131,11 +135,11 @@ class EditTagName(tk.Frame):
 
     def edit_view(self):
         navigate_to_landing = partial(self.copii.navigation, 'landing')
-        tk.Label(self.master, text=self.tag_to_edit, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-        tk.Label(self.master, text="Enter new tag name: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_tag_name).pack()
-        tk.Button(self.master, text='Submit', command=self.edit_tag).pack()
-        tk.Button(self.master, text='Cancel', command=navigate_to_landing).pack()
+        tk.Label(self.master, text=self.tag_to_edit, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/3, y=100)
+        tk.Label(self.master, text="Enter new tag name: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING)
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_tag_name).place(x=WINDOW_WIDTH/2, y=100+SPACING)
+        tk.Button(self.master, text='Submit', command=self.edit_tag).place(x=WINDOW_WIDTH/2, y=100+SPACING*2)
+        tk.Button(self.master, text='Cancel', command=navigate_to_landing).place(x=WINDOW_WIDTH/1.65, y=100+SPACING*2)
 
 class InsertRecord(tk.Frame):
     def __init__(self, copii, master):
@@ -162,14 +166,14 @@ class InsertRecord(tk.Frame):
 
     def insert_view(self):
         navigate_to_landing = partial(self.copii.navigation, 'landing')
-        tk.Label(self.master, text='Add a new record: ').pack()
-        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_tag).pack()
-        tk.Label(self.master, text="secret: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_secret, show='*').pack()
-        tk.Label(self.master, text='Re-enter secret: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.secret_reenter, show='*').pack()
-        tk.Button(self.master, text='Submit', command=self.insert).pack()
-        tk.Button(self.master, text='Cancel', command=navigate_to_landing).pack()
+        tk.Label(self.master, text='Add a new record: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING)
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_tag).place(x=WINDOW_WIDTH/2, y=100+SPACING)
+        tk.Label(self.master, text="Secret: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING*2)
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_secret, show='*').place(x=WINDOW_WIDTH/2, y=100+SPACING*2)
+        tk.Label(self.master, text='Re-enter secret: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).place(x=WINDOW_WIDTH/4, y=100+SPACING*3)
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.secret_reenter, show='*').place(x=WINDOW_WIDTH/2, y=100+SPACING*3)
+        tk.Button(self.master, text='Submit', command=self.insert).place(x=WINDOW_WIDTH/2, y=100+SPACING*4)
+        tk.Button(self.master, text='Cancel', command=navigate_to_landing).place(x=WINDOW_WIDTH/1.68, y=100+SPACING*4)
 
 
 class Copii(tk.Frame):
@@ -178,7 +182,7 @@ class Copii(tk.Frame):
         self.master = master
         self.master.title('copii')
         # Width height
-        self.master.geometry("600x700")
+        self.master.geometry("{}x{}".format(WINDOW_WIDTH, WINDOW_HEIGHT))
         # Set background color of copii
         self.master.configure(background=PRI_BG_COLOR)
         self.navigation('login')
