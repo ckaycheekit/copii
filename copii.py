@@ -38,8 +38,6 @@ class Login(tk.Frame):
         if (self.username_enter.get() == '') or (self.passcode_enter.get() == ''):
             messagebox.showerror("Copii", "Please fill in username & passcode!")
         else:
-            tk.Label(self.master, text='Re-enter passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
-            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_reenter, show='*').pack()
             if self.passcode_enter.get() == self.passcode_reenter.get():
                 db.insert_data('credentials', username=self.username_enter.get(), passcode=self.passcode_enter.get())
                 self.copii.navigation('landing')
@@ -47,6 +45,10 @@ class Login(tk.Frame):
                 self.passcode_enter.set("")
                 self.passcode_reenter.set("")
                 self.master.unbind('<Return>')
+            else:
+                messagebox.showerror("Copii", "Wrong passcode!")
+                self.passcode_enter.set("")
+                self.passcode_reenter.set("")
 
 
     def login_view(self):
@@ -72,6 +74,8 @@ class Login(tk.Frame):
             tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.username_enter).pack()
             tk.Label(self.master, text="Passcode: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
             tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_enter, show='*').pack()
+            tk.Label(self.master, text='Re-enter passcode: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+            tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.passcode_reenter, show='*').pack()
             tk.Button(self.master, text='Submit', command=self.signup).pack()
             self.master.bind("<Return>", (lambda event: self.signup()))
 
@@ -83,9 +87,13 @@ class Landing(tk.Frame):
         self.master = master
         self.landing_view()
 
-    def copy_secret_to_clipboard(self, secret):
+    def copy_secret_to_clipboard(self, tag, secret):
         self.master.clipboard_clear()
         self.master.clipboard_append(secret)
+        msg = "Secret for {} has been copied to clipboard!".format(tag)
+        msg_widget = tk.Label(self.master, text=msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR)
+        msg_widget.pack()
+        msg_widget.after(2000, lambda: msg_widget.destroy())
 
     def delete_tag(self, tag):
         delete_confirmation = messagebox.askokcancel("Delete", "Are you sure to delete {} ?".format(tag))
@@ -94,14 +102,13 @@ class Landing(tk.Frame):
             self.copii.navigation('landing')
 
     def landing_view(self):
-        tk.Label(self.master, text="Landing page", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
         navigate_to_insert = partial(self.copii.navigation, 'insert')
         tk.Button(self.master, text='Add record', command=navigate_to_insert).pack()
         tags_secrets_list = db.get_all_tags('secrets')
         for i in range(len(tags_secrets_list)):
             tag = tags_secrets_list[i][0]
             sec = tags_secrets_list[i][1]
-            copy_secret_to_clipboard = partial(self.copy_secret_to_clipboard, sec)
+            copy_secret_to_clipboard = partial(self.copy_secret_to_clipboard, tag, sec)
             delete_tag = partial(self.delete_tag, tag)
             navigate_to_edit_tag = partial(self.copii.navigation, 'edit_tag', tag)
             tk.Button(self.master, text=tag, command=copy_secret_to_clipboard).pack()
@@ -135,11 +142,34 @@ class InsertRecord(tk.Frame):
         super().__init__(master)
         self.copii = copii
         self.master = master
-        self.insert()
+        self.new_tag = tk.StringVar()
+        self.new_secret = tk.StringVar()
+        self.secret_reenter = tk.StringVar()
+        self.insert_view()
 
     def insert(self):
-        label = tk.Label(self.master, text='tis is insert')
-        label.pack()
+        if (self.new_tag.get() == '') or (self.new_secret.get() == ''):
+            messagebox.showerror("Copii", "Please fill in tag & secret!")
+        else:
+            if self.new_secret.get() == self.secret_reenter.get():
+                db.insert_data('secrets', tag=self.new_tag.get(), secret=self.new_secret.get())
+                self.copii.navigation('landing')
+                self.new_tag.set("")
+                self.new_secret.set("")
+                self.secret_reenter.set("")
+            else:
+                messagebox.showerror("Copii", "Secrets not matched!")
+
+    def insert_view(self):
+        navigate_to_landing = partial(self.copii.navigation, 'landing')
+        tk.Label(self.master, text='Add a new record: ').pack()
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_tag).pack()
+        tk.Label(self.master, text="secret: ", bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.new_secret, show='*').pack()
+        tk.Label(self.master, text='Re-enter secret: ', bg=PRI_BG_COLOR, fg=PRI_FT_COLOR).pack()
+        tk.Entry(self.master, bg=SEC_BG_COLOR, fg=SEC_FT_COLOR, textvariable=self.secret_reenter, show='*').pack()
+        tk.Button(self.master, text='Submit', command=self.insert).pack()
+        tk.Button(self.master, text='Cancel', command=navigate_to_landing).pack()
 
 
 class Copii(tk.Frame):
@@ -182,4 +212,7 @@ if __name__ == '__main__':
     # Start running app
     root = tk.Tk()
     copii = Copii(master=root)
-    copii.mainloop()
+    try:
+        copii.mainloop()
+    finally:
+        db.close_connection()
