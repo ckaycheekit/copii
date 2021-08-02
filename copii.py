@@ -212,11 +212,9 @@ class Copii(tk.Frame):
             self.call_edit_tag(tag_to_edit)
 
 
-if __name__ == '__main__':
-    # Start running app
-    root = tk.Tk()
-    copii = Copii(master=root)
-    try:
-        copii.mainloop()
-    finally:
-        db.close_connection()
+root = tk.Tk()
+copii = Copii(master=root)
+try:
+    copii.mainloop()
+finally:
+    db.close_connection()

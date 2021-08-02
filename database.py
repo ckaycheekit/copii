@@ -36,7 +36,7 @@ class Database:
     def get_all_tags(self, table):
         # Create table if not exists
         if not self.check_table_exists('secrets'):
-            self.create_table()
+            self.create_table('secrets')
         get_query = "SELECT * FROM secrets"
         # return self.con.execute(get_query)
         res = self.con.execute(get_query).fetchall()
