@@ -102,8 +102,8 @@ class Landing(tk.Frame):
         tk.Button(self.scrollFrame.viewPort, text='Add record', command=navigate_to_insert, height=2).grid(row=0, column=0)
         tags_secrets_list = db.get_all_tags('secrets')
         # max to be 28, min to be 19 when len increases by 2 -> range decreases by 1
-        # window_height_range = 19 if 28 - (len(tags_secrets_list)  // 2) < 19 else 28 - (len(tags_secrets_list)  // 2)
-        for i in range(17):
+        window_height_range = 17 - (len(tags_secrets_list) // 14)
+        for i in range(window_height_range):
             tk.Label(self.scrollFrame.viewPort, bg=PRI_BG_COLOR, height=2).grid(row=i+1, column=100)
         for i in range(len(tags_secrets_list)):
             tag = tags_secrets_list[i][0]
