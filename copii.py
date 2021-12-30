@@ -1,19 +1,10 @@
 import tkinter as tk
 from tkinter import messagebox
-# from tkmacosx import Button
+from scrollframe import ScrollFrame
 from database import Database
 from functools import partial
+from settings import WINDOW_WIDTH, WINDOW_HEIGHT, SPACING, PRI_BG_COLOR, PRI_FT_COLOR, SEC_BG_COLOR, SEC_FT_COLOR
 
-
-# Global variables
-WINDOW_WIDTH = 600
-WINDOW_HEIGHT = 700
-SPACING = 30
-LANDING_SPACING = 45
-PRI_BG_COLOR = 'black'
-SEC_BG_COLOR = '#ececec'
-PRI_FT_COLOR = '#ececec'
-SEC_FT_COLOR = 'black'
 
 db = Database()
 
@@ -89,13 +80,14 @@ class Landing(tk.Frame):
         super().__init__(master)
         self.copii = copii
         self.master = master
+        self.scrollFrame = ScrollFrame(self)
         self.landing_view()
 
     def copy_secret_to_clipboard(self, tag, secret):
         self.master.clipboard_clear()
         self.master.clipboard_append(secret)
         msg = "Secret for {} has been copied to clipboard!".format(tag)
-        msg_widget = tk.Label(self.master, text=msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR)
+        msg_widget = tk.Label(self.scrollFrame.canvas, text=msg, bg=PRI_BG_COLOR, fg=PRI_FT_COLOR)
         msg_widget.pack()
         msg_widget.after(2000, lambda: msg_widget.destroy())
 
@@ -107,17 +99,24 @@ class Landing(tk.Frame):
 
     def landing_view(self):
         navigate_to_insert = partial(self.copii.navigation, 'insert')
-        tk.Button(self.master, text='Add record', command=navigate_to_insert).place(x=WINDOW_WIDTH/8, y=50)
+        tk.Button(self.scrollFrame.viewPort, text='Add record', command=navigate_to_insert, height=2).grid(row=0, column=0)
         tags_secrets_list = db.get_all_tags('secrets')
+        # max to be 28, min to be 19 when len increases by 2 -> range decreases by 1
+        # window_height_range = 19 if 28 - (len(tags_secrets_list)  // 2) < 19 else 28 - (len(tags_secrets_list)  // 2)
+        for i in range(17):
+            tk.Label(self.scrollFrame.viewPort, bg=PRI_BG_COLOR, height=2).grid(row=i+1, column=100)
         for i in range(len(tags_secrets_list)):
             tag = tags_secrets_list[i][0]
             sec = tags_secrets_list[i][1]
             copy_secret_to_clipboard = partial(self.copy_secret_to_clipboard, tag, sec)
             delete_tag = partial(self.delete_tag, tag)
             navigate_to_edit_tag = partial(self.copii.navigation, 'edit_tag', tag)
-            tk.Button(self.master, text=tag, command=copy_secret_to_clipboard, width=30, height=2).place(x=WINDOW_WIDTH/6, y=100+LANDING_SPACING*i)
-            tk.Button(self.master, text="Edit", command=navigate_to_edit_tag).place(x=WINDOW_WIDTH/1.4, y=100+LANDING_SPACING*i)
-            tk.Button(self.master, text="Delete", command=delete_tag).place(x=WINDOW_WIDTH/1.28, y=100+LANDING_SPACING*i)
+            tk.Button(self.scrollFrame.viewPort, text=tag, command=copy_secret_to_clipboard, width=30, height=2).grid(row=i+1, column=1)
+            tk.Label(self.scrollFrame.viewPort, width=10, bg=PRI_BG_COLOR).grid(row=i+1, column=2)
+            tk.Button(self.scrollFrame.viewPort, text="Edit", command=navigate_to_edit_tag).grid(row=i+1, column=3)
+            tk.Label(self.scrollFrame.viewPort, width=1, bg=PRI_BG_COLOR).grid(row=i+1, column=4)
+            tk.Button(self.scrollFrame.viewPort, text="Delete", command=delete_tag).grid(row=i+1, column=5)
+        self.scrollFrame.pack(side="top", fill="both", expand=True)
 
 
 class EditTagName(tk.Frame):
@@ -185,13 +184,15 @@ class Copii(tk.Frame):
         self.master.geometry("{}x{}".format(WINDOW_WIDTH, WINDOW_HEIGHT))
         # Set background color of copii
         self.master.configure(background=PRI_BG_COLOR)
+        # Disable window resizability for scrolling to work properly
+        self.master.resizable(False, False)
         self.navigation('login')
 
     def call_login(self):
         login = Login(self, self.master)
 
     def call_landing(self):
-        landing = Landing(self, self.master)
+        Landing(self, self.master).pack(side="top", fill="both", expand=True)
 
     def call_insert(self):
         insert = InsertRecord(self, self.master)
